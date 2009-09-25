@@ -3,17 +3,20 @@ class PenBalancer
   BOOLEAN_ATTRIBS = [:ascii=, :block=, :conn_max=, :control=, :control_acl=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
   GETTERS_SETTERS = [:blacklist, :client_acl, :control_acl, :debug, :log, :tracking, :timeout, :web_stats]
   GETTERS         = [:clients_max, :conn_max, :control, :listen, :recent, :status]
-  COMMANDS        = [:exit, :include, :write]
+  COMMANDS        = [:exit!, :include!, :write!]
+
   #
   #  Creates a new PenBalancer instance: If you have launched a local pen
   #  instance with 8080 as the control port, you should use PenBalancer 
   #  like this: PenBalancer.new 'localhost:8080'
+  #
   def initialize( address )
     @pen = address
   end
 
   #
   #  Returns an array of servers pen currently knows
+  #
   def servers
     list = []
     execute_penctl("servers").each{ |l| list << parse_server_line(l) }
@@ -23,7 +26,8 @@ class PenBalancer
   #
   #  Takes a line of the output of penctl's 'servers' command and turns it into
   #  a hash with the keys :slot, :addr:, :port, :conn, :max, :hard, :sx, :rx
-  def self.parse_server_line( line )
+  #
+  def parse_server_line( line )
     keys = %w{ slot addr port conn max hard sx rx}
     hash = Hash[*("slot #{line}".split)]
     server = {}
@@ -32,7 +36,8 @@ class PenBalancer
   end
 
   #
-  #  Calls the penctl binary and issues a commend
+  #  Calls the penctl binary and issues a command
+  #
   def execute_penctl( cmd )
     cmd = "penctl #{@pen} #{cmd}"
     IO.popen(cmd).readlines.map(&:chomp)
@@ -47,10 +52,11 @@ class PenBalancer
   #    3) commands:              penctl localhost:8080 exit
   #  The first two are turned into regular getters and setters and
   #  the last into methods.
+  #
   def method_missing(method, *args)
-    return set_boolean_attribute(method, args[0]) if BOOLEAN_ATTRIBS.include? method
-    return get_set_attribute(method, args[0])     if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
-    return execute_penctl(method.to_s)==[]        if COMMANDS.include? method
+    return set_boolean_attribute(method, args[0])       if BOOLEAN_ATTRIBS.include? method
+    return get_set_attribute(method, args[0])           if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
+    return execute_penctl(method.to_s.chomp('!')) == [] if COMMANDS.include? method
     raise 
   end
   

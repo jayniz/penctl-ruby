@@ -17,4 +17,24 @@ describe PenBalancer do
     end
   end
   
+  describe ":servers" do
+    
+  end
+  
+  describe "penctl output parsing" do
+    
+    it "should be able to parse a line" do
+      line = "1 addr 127.0.0.1 port 12501 conn 2709 max 2212 hard 2 sx 1092895943 rx 2664422154"
+      expected = { :slot => 1,
+                   :addr => '127.0.0.1',
+                   :port => 12501,
+                   :conn => 2709,
+                   :max  => 2212,
+                   :hard => 2,
+                   :sx   => 1092895943,
+                   :rx   => 2664422154 }
+      PenBalancer.parse_line(line).should == expected
+    end
+    
+  end
 end

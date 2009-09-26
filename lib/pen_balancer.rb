@@ -19,8 +19,11 @@ class PenBalancer
   #
   def servers
     list = []
-    execute_penctl("servers").each{ |l| list << parse_server_line(l) }
-    list
+    execute_penctl("servers").each do |l| 
+      server = parse_server_line(l)
+      list[server[:slot]] = server
+    end
+    list.compact
   end
 
   #
@@ -71,6 +74,18 @@ class PenBalancer
     cmd   = attribute.to_s.chomp '='
     value = attribute.to_s['='] ? " #{value}" : ''
     return execute_penctl("#{cmd}#{value}".chomp)[0].to_i # All attributes you can read from penctl are integers
+  end
+  
+  protected 
+  
+  #
+  #  Fetches the list of servers currently known to pen and returns a hash with
+  #    :slot, :addr, :port, :conn, :max, :hard, :sx, :rx
+  #  Raises an exception when no server with the given address and port is in that list.
+  #
+  def get_server( addr, port )
+    server_list = servers
+    server_list.select{ |s| s[:addr] == addr and s[:port] == port} or raise ArgumentError.new("Could not find #{host}:#{port} in #{server_list.inspect}")
   end
   
 end

@@ -13,12 +13,11 @@ describe PenBalancer do
       servers_reply = ["0 addr 127.0.0.1 port 12101 conn 0 max 0 hard 0 sx 1054463671 rx 2586728338",
                        "1 addr 127.0.0.1 port 12501 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671"]
       @pen.should_receive(:execute_penctl).with("servers").and_return servers_reply
-      @pen.should_receive(:parse_server_line).twice.and_return "hash"
-      
+
       result = @pen.servers
       result.should have(2).items
-      result[0].should == "hash"
-      result[1].should == "hash"
+      result[0].should be_a(Hash)
+      result[1].should be_a(Hash)
     end
     
     it "should set boolean variables (e.g. pen.http=true)" do
@@ -56,16 +55,33 @@ describe PenBalancer do
   describe "methods making the penctl commands [no] acl and server more convenient" do
     
     describe "adding or removing servers to the pool" do
-      it "should add a server into an empty slot"
-      it "should raise an exception when adding a server and slots are full"
-      it "should remove a server freeing a slot"
+      
+      before(:each) do
+        @pen = PenBalancer.new '127.0.0.1:12000'
+        servers_reply = ["0 addr 127.0.0.1 port 100 conn 0 max 0 hard 0 sx 1054463671 rx 2586728338",
+                         "1 addr 127.0.0.1 port 101 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671",
+                         "2 addr 0.0.0.0 port 0 conn 0 max 0 hard 0 sx 0 rx 0"]
+        @pen.should_receive(:execute_penctl).with("servers").and_return servers_reply
+      end
+      
+      xit "should add a server into an empty slot" do
+        @pen.add_server('127.0.0.1', 102).should be_true
+      end
+      
+      xit "should remove a server freeing a slot" do
+        @pen.remove_server('127.0.0.1', 102).should be_true
+      end
+      
       it "should raise an exception when given server could not be found in the list"
+      it "should raise an exception when adding a server and slots are full"
+      it "should raise an exception when adding a server that is already in the list"
+      
     end
     
-    describe "managing access control to servers" do
-      it "should set access control list for a server"
-      it "should remove access control list from a server (allow from all)"
-      it "should raise an exception when given server could not be found in the list"
+    describe "managing access control" do
+      it "should set access control list"
+      it "should remove access control (allow from all)"
+      it "should raise an exception when given ACL list is out of range [0..9]"
     end
   end
   
@@ -94,6 +110,5 @@ describe PenBalancer do
     end
     
   end
-
 
 end

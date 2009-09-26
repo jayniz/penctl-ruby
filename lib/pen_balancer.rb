@@ -76,6 +76,25 @@ class PenBalancer
   end
   
   #
+  #  Updates an entry of the access control list. Params is a hash with
+  #  mandatory :policy => permit/deny and :source_ip. You can optionally
+  #  pass a :netmask.
+  #
+  def set_acl_entry( slot, params )
+    raise ArgumentError.new("slot #{slot} outside range 0-9")       unless (0..9).include?(slot)
+    raise ArgumentError.new("policy must be either permit or deny") unless ['permit', 'deny'].include? params[:policy]
+    execute_penctl("acl #{slot} #{params[:policy]} #{params[:source_ip]} #{params[:netmask]}".strip)
+  end
+  
+  #
+  #  Flushes the rules of an acl entry (==permit from all)
+  #
+  def remove_acl_entry( slot )
+    raise ArgumentError.new("slot #{slot} outside range 0-9") unless (0..9).include?(slot)
+    execute_penctl("no acl #{slot}")
+  end
+  
+  #
   #  penctl has the following three patterns:
   #    1) booleans (no getters): penctl localhost:8080 no ascii
   #                              penctl localhost:8080 ascii

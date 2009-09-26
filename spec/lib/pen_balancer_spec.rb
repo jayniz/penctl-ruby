@@ -90,10 +90,32 @@ describe PenBalancer do
     end
   
     
-    describe "managing access control" do
-      it "should set access control list"
-      it "should remove access control (allow from all)"
-      it "should raise an exception when given ACL list is out of range [0..9]"
+    describe "managing access control lists" do
+      
+      before(:each) do
+        @pen = PenBalancer.new '127.0.0.1:12000'
+      end
+      
+      it ":set_acl_entry should set access control list with netmask" do
+        @pen.should_receive(:execute_penctl).with("acl 2 permit 192.168.0.1 255.255.255.0")
+        @pen.set_acl_entry(2, :policy => 'permit', :source_ip => '192.168.0.1', :netmask => '255.255.255.0')
+      end
+      
+      it ":set_acl_entry should set access control list without netmask" do
+        @pen.should_receive(:execute_penctl).with("acl 2 permit 192.168.0.1")
+        @pen.set_acl_entry(2, :policy => 'permit', :source_ip => '192.168.0.1')
+      end
+      
+      it ":set_acl_entry should remove access control (allow from all)" do
+        @pen.should_receive(:execute_penctl).with("no acl 2")
+        @pen.remove_acl_entry(2)
+      end
+      
+      it ":set_acl_entry should raise an exception when given ACL list is out of range [0..9]" do
+        lambda {
+          @pen.set_acl_entry(10, :policy => 'deny', :source_ip => '127.0.0.1')
+        }.should raise_error(ArgumentError)
+      end
     end
   end
   

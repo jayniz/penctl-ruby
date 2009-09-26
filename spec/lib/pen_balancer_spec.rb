@@ -114,7 +114,7 @@ describe PenBalancer do
       it ":set_acl_entry should raise an exception when given ACL list is out of range [0..9]" do
         lambda {
           @pen.set_acl_entry(10, :policy => 'deny', :source_ip => '127.0.0.1')
-        }.should raise_error(ArgumentError)
+        }.should raise_error(RangeError)
       end
     end
   end
@@ -145,7 +145,7 @@ describe PenBalancer do
     end
     
     it ":execute should call the penctl binary and contact the right pen" do
-      IO.should_receive(:popen).with("penctl 127.0.0.1:12000 foo").and_return mock(:readlines => ["something"])
+      @pen.should_receive(:'`').with("penctl 127.0.0.1:12000 foo").and_return "something\n"
       @pen.execute_penctl("foo").should == ["something"]
     end
     

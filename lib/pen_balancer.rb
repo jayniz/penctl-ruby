@@ -39,11 +39,19 @@ class PenBalancer
   end
 
   #
-  #  Calls the penctl binary and issues a command
+  #  Calls the penctl binary and issues a command. Tries to contact the pen server
+  #  again, when it could not be reached (and gives up after five times, raising 
+  #  an exception).
   #
-  def execute_penctl( cmd )
-    cmd = "penctl #{@pen} #{cmd}"
-    IO.popen(cmd).readlines.map(&:chomp)
+  def execute_penctl( cmd, tries_left = 5 )
+    raise StandardError.new("Can't contact pen, giving up.") unless tries_left > 0
+    shell_cmd = "penctl #{@pen} #{cmd}"
+    result = `#{shell_cmd}`.split("\n")
+    if $?.to_i!=0 or result.empty?
+      sleep 0.3
+      return execute_penctl( cmd, tries_left.pred) 
+    end
+    return result
   end
   
   #
@@ -81,7 +89,7 @@ class PenBalancer
   #  pass a :netmask.
   #
   def set_acl_entry( slot, params )
-    raise ArgumentError.new("slot #{slot} outside range 0-9")       unless (0..9).include?(slot)
+    raise RangeError.new("slot #{slot} outside range 0-9")       unless (0..9).include?(slot)
     raise ArgumentError.new("policy must be either permit or deny") unless ['permit', 'deny'].include? params[:policy]
     execute_penctl("acl #{slot} #{params[:policy]} #{params[:source_ip]} #{params[:netmask]}".strip)
   end
@@ -90,7 +98,7 @@ class PenBalancer
   #  Flushes the rules of an acl entry (==permit from all)
   #
   def remove_acl_entry( slot )
-    raise ArgumentError.new("slot #{slot} outside range 0-9") unless (0..9).include?(slot)
+    raise RangeError.new("slot #{slot} outside range 0-9") unless (0..9).include?(slot)
     execute_penctl("no acl #{slot}")
   end
   

@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'lib/pen_balancer'
+require 'lib/penctl'
 
 describe PenBalancer do
 
@@ -12,7 +13,7 @@ describe PenBalancer do
     it ":servers should return an array of hashes with the servers pen currently knows" do
       servers_reply = ["0 addr 127.0.0.1 port 12101 conn 0 max 0 hard 0 sx 1054463671 rx 2586728338",
                        "1 addr 127.0.0.1 port 12501 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671"]
-      @pen.should_receive(:execute_penctl).with("servers").and_return servers_reply
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", "servers", 5).and_return servers_reply
 
       result = @pen.servers
       result.should have(2).items
@@ -21,32 +22,32 @@ describe PenBalancer do
     end
     
     it "should set boolean variables (e.g. pen.http=true)" do
-      @pen.should_receive(:execute_penctl).with('http')
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'http')
       @pen.http = true
     end
     
     it "should set boolean variables (e.g. pen.http=false)" do
-      @pen.should_receive(:execute_penctl).with('no http')
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'no http')
       @pen.http = false
     end
     
     it "should set other variables (e.g. pen.debug=5)" do
-      @pen.should_receive(:execute_penctl).with('debug 5').and_return ["5"]
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'debug 5').and_return ["5"]
       @pen.debug = 5
     end
     
     it "should get other variables (e.g. pen.debug)" do
-      @pen.should_receive(:execute_penctl).with('debug').and_return ["5"]
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'debug').and_return ["5"]
       @pen.debug.should == 5
     end
     
     it "should issue commands (e.g. pen.exit!)" do
-      @pen.should_receive(:execute_penctl).with('exit').and_return []
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'exit').and_return []
       @pen.exit!.should be_true
     end
     
     it "should return false when a command could not be issued" do
-      @pen.should_receive(:execute_penctl).with('exit').and_return ["Exit is not enabled; restart with -X flag"]
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'exit').and_return ["Exit is not enabled; restart with -X flag"]
       @pen.exit!.should be_false
     end
     
@@ -62,16 +63,16 @@ describe PenBalancer do
                          "1 addr 127.0.0.1 port 101 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671",
                          "2 addr 0.0.0.0 port 0 conn 0 max 0 hard 0 sx 0 rx 0",
                          "3 addr 0.0.0.0 port 0 conn 0 max 0 hard 0 sx 0 rx 0"]
-        @pen.should_receive(:execute_penctl).with("servers").at_least(1).and_return servers_reply
+        Penctl.should_receive(:execute).with("127.0.0.1:12000", "servers", 5).at_least(1).and_return servers_reply
       end
       
       it "should add a server into an empty slot" do
-        @pen.should_receive(:update_server).with(2, :address => '127.0.0.1', :port => 102)
+        Penctl.should_receive(:update_server).with('127.0.0.1:12000', 2, :address => '127.0.0.1', :port => 102)
         @pen.add_server('127.0.0.1', 102).should be_true
       end
       
       it "should remove a server freeing a slot" do
-        @pen.should_receive(:update_server).with(1, :address => '0.0.0.0', :port => 0)
+        Penctl.should_receive(:update_server).with('127.0.0.1:12000', 1, :address => '0.0.0.0', :port => 0)
         @pen.remove_server('127.0.0.1', 101).should be_true
       end
       
@@ -97,17 +98,17 @@ describe PenBalancer do
       end
       
       it ":set_acl_entry should set access control list with netmask" do
-        @pen.should_receive(:execute_penctl).with("acl 2 permit 192.168.0.1 255.255.255.0")
+        Penctl.should_receive(:execute).with("127.0.0.1:12000", "acl 2 permit 192.168.0.1 255.255.255.0")
         @pen.set_acl_entry(2, :policy => 'permit', :source_ip => '192.168.0.1', :netmask => '255.255.255.0')
       end
       
       it ":set_acl_entry should set access control list without netmask" do
-        @pen.should_receive(:execute_penctl).with("acl 2 permit 192.168.0.1")
+        Penctl.should_receive(:execute).with("127.0.0.1:12000", "acl 2 permit 192.168.0.1")
         @pen.set_acl_entry(2, :policy => 'permit', :source_ip => '192.168.0.1')
       end
       
       it ":set_acl_entry should remove access control (allow from all)" do
-        @pen.should_receive(:execute_penctl).with("no acl 2")
+        Penctl.should_receive(:execute).with("127.0.0.1:12000", "no acl 2")
         @pen.remove_acl_entry(2)
       end
       
@@ -118,37 +119,4 @@ describe PenBalancer do
       end
     end
   end
-  
-  describe "utility methods to talk to pen via penctl" do
-    
-    before(:each) do
-      @pen = PenBalancer.new '127.0.0.1:12000'
-    end
-    
-    it ":update_server should change server settings" do
-      @pen.should_receive(:execute_penctl).with("server 1 address 127.0.0.1 port 88")
-      @pen.update_server 1, :address => '127.0.0.1', :port => 88
-    end
-
-    
-    it ":parse_server_line should turn penctl servers output into a hash" do
-      line = "1 addr 127.0.0.1 port 12501 conn 2709 max 2212 hard 2 sx 1092895943 rx 2664422154"
-      expected = { :slot => 1,
-                   :addr => '127.0.0.1',
-                   :port => 12501,
-                   :conn => 2709,
-                   :max  => 2212,
-                   :hard => 2,
-                   :sx   => 1092895943,
-                   :rx   => 2664422154 }
-      @pen.parse_server_line(line).should == expected
-    end
-    
-    it ":execute should call the penctl binary and contact the right pen" do
-      @pen.should_receive(:'`').with("penctl 127.0.0.1:12000 foo").and_return "something\n"
-      @pen.execute_penctl("foo").should == ["something"]
-    end
-    
-  end
-
 end

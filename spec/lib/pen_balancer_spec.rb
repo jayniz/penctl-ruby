@@ -54,29 +54,41 @@ describe PenBalancer do
 
   describe "methods making the penctl commands [no] acl and server more convenient" do
     
-    describe "adding or removing servers to the pool" do
+    describe "adding or removing servers from the pool" do
       
       before(:each) do
         @pen = PenBalancer.new '127.0.0.1:12000'
         servers_reply = ["0 addr 127.0.0.1 port 100 conn 0 max 0 hard 0 sx 1054463671 rx 2586728338",
                          "1 addr 127.0.0.1 port 101 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671",
-                         "2 addr 0.0.0.0 port 0 conn 0 max 0 hard 0 sx 0 rx 0"]
-        @pen.should_receive(:execute_penctl).with("servers").and_return servers_reply
+                         "2 addr 0.0.0.0 port 0 conn 0 max 0 hard 0 sx 0 rx 0",
+                         "3 addr 0.0.0.0 port 0 conn 0 max 0 hard 0 sx 0 rx 0"]
+        @pen.should_receive(:execute_penctl).with("servers").at_least(1).and_return servers_reply
       end
       
-      xit "should add a server into an empty slot" do
+      it "should add a server into an empty slot" do
+        @pen.should_receive(:update_server).with(2, :address => '127.0.0.1', :port => 102)
         @pen.add_server('127.0.0.1', 102).should be_true
       end
       
-      xit "should remove a server freeing a slot" do
-        @pen.remove_server('127.0.0.1', 102).should be_true
+      it "should remove a server freeing a slot" do
+        @pen.should_receive(:update_server).with(1, :address => '0.0.0.0', :port => 0)
+        @pen.remove_server('127.0.0.1', 101).should be_true
       end
       
-      it "should raise an exception when given server could not be found in the list"
-      it "should raise an exception when adding a server and slots are full"
-      it "should raise an exception when adding a server that is already in the list"
+      it "should raise an exception when given server could not be found in the list" do
+        lambda {
+          @pen.remove_server('127.0.0.2', 100)
+        }.should raise_error(ArgumentError)
+      end
+      
+      it "should raise an exception when adding a server that is already in the list" do
+        lambda {
+          @pen.add_server('127.0.0.1', 100)
+        }.should raise_error(ArgumentError)
+      end
       
     end
+  
     
     describe "managing access control" do
       it "should set access control list"
@@ -90,6 +102,12 @@ describe PenBalancer do
     before(:each) do
       @pen = PenBalancer.new '127.0.0.1:12000'
     end
+    
+    it ":update_server should change server settings" do
+      @pen.should_receive(:execute_penctl).with("server 1 address 127.0.0.1 port 88")
+      @pen.update_server 1, :address => '127.0.0.1', :port => 88
+    end
+
     
     it ":parse_server_line should turn penctl servers output into a hash" do
       line = "1 addr 127.0.0.1 port 12501 conn 2709 max 2212 hard 2 sx 1092895943 rx 2664422154"

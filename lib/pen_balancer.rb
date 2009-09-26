@@ -47,6 +47,35 @@ class PenBalancer
   end
   
   #
+  #  Adds a server to the pool or throws an exception when there is no free
+  #  slot left
+  #
+  def add_server( host, port )
+    raise ArgumentError if server_in_pool?( host, port)
+    free_slot = get_server( '0.0.0.0', 0 )
+    update_server free_slot[:slot], :address => host, :port => port
+    true
+  end
+  
+  #
+  #  Removes a server from the pool or throws an exception when the server
+  #  cannot be found in the pool
+  #
+  def remove_server( host, port )
+    server = get_server( host, port )
+    update_server server[:slot], :address => '0.0.0.0', :port => 0
+    true
+  end
+  
+  #
+  #  Sends a penctl server command to update a server's settings.
+  #
+  def update_server( slot, settings )
+    cmd = settings.to_a.flatten.join(' ')
+    execute_penctl( "server #{slot} #{cmd}" )
+  end
+  
+  #
   #  penctl has the following three patterns:
   #    1) booleans (no getters): penctl localhost:8080 no ascii
   #                              penctl localhost:8080 ascii
@@ -60,7 +89,7 @@ class PenBalancer
     return set_boolean_attribute(method, args[0])       if BOOLEAN_ATTRIBS.include? method
     return get_set_attribute(method, args[0])           if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
     return execute_penctl(method.to_s.chomp('!')) == [] if COMMANDS.include? method
-    raise 
+    raise "Missing method #{method}"
   end
   
   def set_boolean_attribute(attribute, value)
@@ -83,9 +112,16 @@ class PenBalancer
   #    :slot, :addr, :port, :conn, :max, :hard, :sx, :rx
   #  Raises an exception when no server with the given address and port is in that list.
   #
-  def get_server( addr, port )
+  def get_server( host, port )
     server_list = servers
-    server_list.select{ |s| s[:addr] == addr and s[:port] == port} or raise ArgumentError.new("Could not find #{host}:#{port} in #{server_list.inspect}")
+    server_list.select{ |s| s[:addr] == host and s[:port] == port.to_i}[0] or raise ArgumentError.new("Could not find #{host}:#{port} in #{server_list.inspect}")
   end
   
+  #
+  #  Checks if a given server is already in the pool
+  #
+  def server_in_pool?( host, port )
+    server_list = servers
+    !server_list.select{ |s| s[:addr] == host and s[:port] == port.to_i}.empty?
+  end
 end

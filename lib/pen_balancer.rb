@@ -2,9 +2,13 @@ require 'lib/penctl'
 
 class PenBalancer
   
-  BOOLEAN_ATTRIBS = [:ascii=, :block=, :conn_max=, :control=, :control_acl=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
+  # TODO: :log       has log, log=false and log=file
+  #       :recent n  more method than getter
+  #       GETTERS
+  
+  BOOLEAN_ATTRIBS = [:ascii=, :block=, :conn_max=, :control=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
   GETTERS_SETTERS = [:blacklist, :client_acl, :control_acl, :debug, :log, :tracking, :timeout, :web_stats]
-  GETTERS         = [:clients_max, :conn_max, :control, :listen, :recent, :status]
+  GETTERS         = [:clients_max, :conn_max, :control, :listen, :status]
   COMMANDS        = [:exit!, :include!, :write!]
 
   #

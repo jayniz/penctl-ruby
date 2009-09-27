@@ -53,10 +53,9 @@ class Penctl
   #  Takes an attribute name along with a value and returns the value.
   #
   def self.get_set_attribute(pen, attribute, value = nil)
-    value ||= 0
     cmd   = attribute.to_s.chomp '='
-    value = attribute.to_s['='] ? " #{value}" : ''
-    to_int_if_int Penctl.execute(pen, "#{cmd}#{value}".chomp)[0]
+    value = value.to_s.empty? ? '' : " #{value}"
+    to_int_if_int(Penctl.execute(pen, "#{cmd}#{value}".chomp)[0])
   end
   
   protected

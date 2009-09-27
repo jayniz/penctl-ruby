@@ -3,13 +3,10 @@ require 'lib/penctl'
 class PenBalancer
   
   # TODO: :log       has log, log=false and log=file
-  #       :file      writes to default file or given path
-  #       :recent n  more method than getter
-  #       check result with .servers on add_server remove_server
   
   BOOLEAN_ATTRIBS = [:ascii=, :block=, :conn_max=, :control=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
   GETTERS_SETTERS = [:blacklist, :client_acl, :control_acl, :debug, :log, :tracking, :timeout, :web_stats]
-  GETTERS         = [:clients_max, :conn_max, :control, :listen, :status]
+  GETTERS         = [:clients_max, :conn_max, :control, :listen, :status, :recent]
   COMMANDS        = [:exit!, :include!, :write!, :file!]
 
   #
@@ -89,7 +86,7 @@ class PenBalancer
   def method_missing(method, *args)
     return Penctl.set_boolean_attribute(@pen, method, args[0])                if BOOLEAN_ATTRIBS.include? method
     return Penctl.get_set_attribute(@pen, method, args[0])                    if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
-    return Penctl.get_set_attribute(@pen, method)                             if GETTERS.include? method
+    return Penctl.get_set_attribute(@pen, method, args[0])                    if GETTERS.include? method
     return Penctl.execute(@pen, "#{method.to_s.chomp('!')} #{args[0]}".strip) if COMMANDS.include? method
     raise "Missing method #{method}"
   end

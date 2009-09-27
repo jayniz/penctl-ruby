@@ -55,12 +55,16 @@ class Penctl
   def self.get_set_attribute(pen, attribute, value = nil)
     cmd   = attribute.to_s.chomp '='
     value = value.to_s.empty? ? '' : " #{value}"
-    to_int_if_int(Penctl.execute(pen, "#{cmd}#{value}".chomp)[0])
+    tidy_output(Penctl.execute(pen, "#{cmd}#{value}".chomp))
   end
   
   protected
   
-  def self.to_int_if_int( value )
-    value.match(/^[\d]+$/) ? value.to_i : value
+  def self.tidy_output( values )
+    if values.size == 1
+      values[0].match(/^[\d]+$/) ? values[0].to_i : value
+    else
+      values
+    end
   end
 end

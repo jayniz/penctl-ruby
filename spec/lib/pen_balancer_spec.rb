@@ -43,13 +43,13 @@ describe PenBalancer do
     end
     
     it "should get readonly variables (e.g. pen.status)" do
-      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'status').and_return ["lots"]
-      @pen.status.should == "lots"
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'status').and_return ["lots", "of", "lines"]
+      @pen.status.should == ["lots", "of", "lines"]
     end
     
     it "should get readonly variables with a parameter (e.g. pen.recent(5))" do
-      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'recent 5').and_return ["lots"]
-      @pen.recent(5).should == "lots"
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'recent 5').and_return ["lots", "of", "lines"]
+      @pen.recent(5).should == ["lots", "of", "lines"]
     end
     
     it "should issue commands (e.g. pen.exit!)" do

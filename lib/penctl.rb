@@ -3,13 +3,15 @@ class Penctl
   #
   #  Calls the penctl binary and issues a command. If you set tries_left to something
   #  larger than 0, it will try to contact the pen server again, when it could not
-  #  be reached (raising an exception when it gives up)
+  #  be reached (raising an exception when it gives up).
   #
   def self.execute( server, cmd, tries_left = 5 )
     raise StandardError.new("Error talking to pen, giving up.") unless tries_left > 0
     shell_cmd = "penctl #{server} #{cmd}"
+#    puts "Executing #{shell_cmd}..."
     result = `#{shell_cmd} 2>&1`.split("\n")    # Redirecting stderr to stdout because of the next line
-    if $?.to_i!=0 or result[0]=='error_reading'
+#    puts "... result is #{result.inspect}"
+    if $?.to_i!=0 or result[0]=='error_reading' or (cmd=="servers" and result.empty?)
       sleep 0.3
       return Penctl.execute( server, cmd, tries_left.pred) 
     end

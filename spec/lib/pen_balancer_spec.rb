@@ -7,6 +7,7 @@ describe PenBalancer do
   describe "methods implementing the commands from `man penctl` (except for acl and server)" do
     
     before(:each) do
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", "control").and_return ["127.0.0.1:12000"]
       @pen = PenBalancer.new '127.0.0.1:12000'
     end
     
@@ -48,12 +49,17 @@ describe PenBalancer do
     
     it "should issue commands (e.g. pen.exit!)" do
       Penctl.should_receive(:execute).with("127.0.0.1:12000", 'exit').and_return []
-      @pen.exit!.should be_true
+      @pen.exit!
+    end
+    
+    it "should issue commands with parameters (e.g. pen.file! /etc/pen.conf)" do
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'file /etc/pen.conf').and_return []
+      @pen.file!('/etc/pen.conf').should be_true
     end
     
     it "should return false when a command could not be issued" do
       Penctl.should_receive(:execute).with("127.0.0.1:12000", 'exit').and_return ["Exit is not enabled; restart with -X flag"]
-      @pen.exit!.should be_false
+      @pen.exit!
     end
     
   end
@@ -63,6 +69,7 @@ describe PenBalancer do
     describe "adding or removing servers from the pool" do
       
       before(:each) do
+        Penctl.should_receive(:execute).with("127.0.0.1:12000", "control").and_return ["127.0.0.1:12000"]
         @pen = PenBalancer.new '127.0.0.1:12000'
         servers_reply = ["0 addr 127.0.0.1 port 100 conn 0 max 0 hard 0 sx 1054463671 rx 2586728338",
                          "1 addr 127.0.0.1 port 101 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671",
@@ -73,11 +80,14 @@ describe PenBalancer do
       
       it "should add a server into an empty slot" do
         Penctl.should_receive(:update_server).with('127.0.0.1:12000', 2, :address => '127.0.0.1', :port => 102)
+        @pen.should_receive(:server_in_pool?).with('127.0.0.1', 102).and_return false
+        @pen.should_receive(:server_in_pool?).with('127.0.0.1', 102).and_return true
         @pen.add_server('127.0.0.1', 102).should be_true
       end
       
       it "should remove a server freeing a slot" do
         Penctl.should_receive(:update_server).with('127.0.0.1:12000', 1, :address => '0.0.0.0', :port => 0)
+        @pen.should_receive(:server_in_pool?).with('127.0.0.1', 101).and_return false
         @pen.remove_server('127.0.0.1', 101).should be_true
       end
       
@@ -99,6 +109,7 @@ describe PenBalancer do
     describe "managing access control lists" do
       
       before(:each) do
+        Penctl.should_receive(:execute).with("127.0.0.1:12000", "control").and_return ["127.0.0.1:12000"]
         @pen = PenBalancer.new '127.0.0.1:12000'
       end
       

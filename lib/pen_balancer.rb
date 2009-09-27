@@ -3,21 +3,25 @@ require 'lib/penctl'
 class PenBalancer
   
   # TODO: :log       has log, log=false and log=file
+  #       :file      writes to default file or given path
   #       :recent n  more method than getter
-  #       GETTERS
+  #       check result with .servers on add_server remove_server
   
   BOOLEAN_ATTRIBS = [:ascii=, :block=, :conn_max=, :control=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
   GETTERS_SETTERS = [:blacklist, :client_acl, :control_acl, :debug, :log, :tracking, :timeout, :web_stats]
   GETTERS         = [:clients_max, :conn_max, :control, :listen, :status]
-  COMMANDS        = [:exit!, :include!, :write!]
+  COMMANDS        = [:exit!, :include!, :write!, :file!]
 
   #
   #  Creates a new PenBalancer instance: If you have launched a local pen
   #  instance with 8080 as the control port, you should use PenBalancer 
-  #  like this: PenBalancer.new 'localhost:8080'
+  #  like this: PenBalancer.new 'localhost:8080'.
+  #  
+  #  Throws an exception when pen can't be reached.
   #
   def initialize( address )
     @pen = address
+    raise "Can't find pen balancer at #{address}" unless Penctl.execute( @pen, "control")[0] == address
   end
 
   #
@@ -37,10 +41,10 @@ class PenBalancer
   #  slot left
   #
   def add_server( host, port )
-    raise ArgumentError if server_in_pool?( host, port)
+    raise ArgumentError.new("Server is in the pool already") if server_in_pool?( host, port)
     free_slot = get_server( '0.0.0.0', 0 )
     Penctl.update_server( @pen, free_slot[:slot], :address => host, :port => port)
-    true
+    server_in_pool? host, port
   end
   
   #
@@ -50,7 +54,7 @@ class PenBalancer
   def remove_server( host, port )
     server = get_server( host, port )
     Penctl.update_server( @pen, server[:slot], :address => '0.0.0.0', :port => 0 )
-    true
+    !server_in_pool? host, port
   end
   
   #
@@ -83,10 +87,10 @@ class PenBalancer
   #  the last into methods.
   #
   def method_missing(method, *args)
-    return Penctl.set_boolean_attribute(@pen, method, args[0]) if BOOLEAN_ATTRIBS.include? method
-    return Penctl.get_set_attribute(@pen, method, args[0])     if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
-    return Penctl.get_set_attribute(@pen, method)              if GETTERS.include? method
-    return Penctl.execute(@pen, method.to_s.chomp('!')) == []  if COMMANDS.include? method
+    return Penctl.set_boolean_attribute(@pen, method, args[0])                if BOOLEAN_ATTRIBS.include? method
+    return Penctl.get_set_attribute(@pen, method, args[0])                    if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
+    return Penctl.get_set_attribute(@pen, method)                             if GETTERS.include? method
+    return Penctl.execute(@pen, "#{method.to_s.chomp('!')} #{args[0]}".strip) if COMMANDS.include? method
     raise "Missing method #{method}"
   end
   

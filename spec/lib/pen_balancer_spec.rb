@@ -41,7 +41,7 @@ describe PenBalancer do
       @pen.debug.should == 5
     end
     
-    xit "should get readonly variables (e.g. pen.status)" do
+    it "should get readonly variables (e.g. pen.status)" do
       Penctl.should_receive(:execute).with("127.0.0.1:12000", 'status').and_return ["lots"]
       @pen.status.should == "lots"
     end

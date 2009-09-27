@@ -5,15 +5,15 @@ class Penctl
   #  larger than 0, it will try to contact the pen server again, when it could not
   #  be reached (raising an exception when it gives up)
   #
-  def self.execute( server, cmd, tries_left = -1 )
-    raise StandardError.new("Error talking to pen, giving up.") if tries_left == 0
+  def self.execute( server, cmd, tries_left = 5 )
+    raise StandardError.new("Error talking to pen, giving up.") unless tries_left > 0
     shell_cmd = "penctl #{server} #{cmd}"
-    result = `#{shell_cmd}`.split("\n")
-    if tries_left>-0 and $?.to_i!=0
+    result = `#{shell_cmd} 2>&1`.split("\n")    # Redirecting stderr to stdout because of the next line
+    if $?.to_i!=0 or result[0]=='error_reading'
       sleep 0.3
       return Penctl.execute( server, cmd, tries_left.pred) 
     end
-    return result
+    result
   end
 
   #
@@ -37,5 +37,29 @@ class Penctl
     return server
   end
 
-
+  #
+  #  Takes an attribute name along with a boolean value and turns it into
+  #  a penctl command. Returns true on success, false on failure.
+  #
+  def self.set_boolean_attribute(pen, attribute, value)
+    cmd = attribute.to_s.chomp '='
+    cmd = value ? cmd : "no " + cmd
+    Penctl.execute(pen, cmd) == ["0"]
+  end
+  
+  #
+  #  Takes an attribute name along with a value and returns the value.
+  #
+  def self.get_set_attribute(pen, attribute, value = nil)
+    value ||= 0
+    cmd   = attribute.to_s.chomp '='
+    value = attribute.to_s['='] ? " #{value}" : ''
+    to_int_if_int Penctl.execute(pen, "#{cmd}#{value}".chomp)[0]
+  end
+  
+  protected
+  
+  def self.to_int_if_int( value )
+    value.match(/^[\d]+$/) ? value.to_i : value
+  end
 end

@@ -83,23 +83,11 @@ class PenBalancer
   #  the last into methods.
   #
   def method_missing(method, *args)
-    return set_boolean_attribute(method, args[0])             if BOOLEAN_ATTRIBS.include? method
-    return get_set_attribute(method, args[0])                 if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
-    return Penctl.execute(@pen, method.to_s.chomp('!')) == [] if COMMANDS.include? method
+    return Penctl.set_boolean_attribute(@pen, method, args[0]) if BOOLEAN_ATTRIBS.include? method
+    return Penctl.get_set_attribute(@pen, method, args[0])     if GETTERS_SETTERS.include? method.to_s.chomp('=').to_sym
+    return Penctl.get_set_attribute(@pen, method)              if GETTERS.include? method
+    return Penctl.execute(@pen, method.to_s.chomp('!')) == []  if COMMANDS.include? method
     raise "Missing method #{method}"
-  end
-  
-  def set_boolean_attribute(attribute, value)
-    cmd = attribute.to_s.chomp '='
-    cmd = value ? cmd : "no " + cmd
-    return Penctl.execute(@pen, cmd) == [0]
-  end
-  
-  def get_set_attribute(attribute, value)
-    value ||= 0
-    cmd   = attribute.to_s.chomp '='
-    value = attribute.to_s['='] ? " #{value}" : ''
-    return Penctl.execute(@pen, "#{cmd}#{value}".chomp)[0].to_i # All attributes you can read from penctl are integers
   end
   
   protected 

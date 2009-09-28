@@ -3,24 +3,31 @@ require 'socket'
 class Penctl
   
   #
-  #  Connects to pen's control port and issues a command. If you set tries_left to something
-  #  larger than 0, it will try to contact the pen server again, when it could not
-  #  be reached (raising an exception when it gives up).
+  #  Connects to pen's control port and issues a command. It will wait a moment and 
+  #  try to contact the pen server again, when it could not be reached (raising an
+  #  exception when it gives up).
   #
   def self.execute( server, cmd, tries_left = 5 )
     raise StandardError.new("Error talking to pen, giving up.") unless tries_left > 0
     shell_cmd = "penctl #{server} #{cmd}"
     host, port = server.split ':'
-    result = []
     begin
-      socket = TCPSocket.open( host, port.to_i )
-      socket.puts cmd
-      while line = socket.gets
-        result << line.chomp
-      end
+      send_command( host, port, cmd )
     rescue Errno::ECONNRESET
       sleep 0.5
       return Penctl.execute( server, cmd, tries_left.pred)
+    end
+  end
+
+  #
+  #  Opens a socket, sends a command to pen and returns the result
+  #
+  def self.send_command( host, port, cmd )
+    socket = TCPSocket.open( host, port.to_i )
+    socket.puts cmd
+    result = []
+    while line = socket.gets
+      result << line.chomp
     end
     socket.close
     result

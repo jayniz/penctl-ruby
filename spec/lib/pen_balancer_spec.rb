@@ -56,9 +56,9 @@ describe PenBalancer do
       @pen.exit!
     end
     
-    it "should issue commands with parameters (e.g. pen.file! /etc/pen.conf)" do
-      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'file /etc/pen.conf').and_return []
-      @pen.file!('/etc/pen.conf').should be_true
+    it "should issue commands with parameters (e.g. pen.write! /etc/pen.conf)" do
+      Penctl.should_receive(:execute).with("127.0.0.1:12000", 'write /etc/pen.conf').and_return []
+      @pen.write!('/etc/pen.conf').should be_true
     end
     
     it "should return false when a command could not be issued" do

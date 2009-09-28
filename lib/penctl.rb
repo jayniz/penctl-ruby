@@ -70,7 +70,7 @@ class Penctl
   
   def self.tidy_output( values )
     if values.size == 1
-      values[0].match(/^[\d]+$/) ? values[0].to_i : value
+      values[0].match(/^[\d]+$/) ? values[0].to_i : values[0]
     else
       values
     end

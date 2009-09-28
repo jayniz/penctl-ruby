@@ -4,7 +4,7 @@ class PenBalancer
   
   # TODO: :log       has log, log=false and log=file
   
-  BOOLEAN_ATTRIBS = [:ascii=, :block=, :conn_max=, :control=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
+  BOOLEAN_ATTRIBS = [:ascii=, :block=, :control=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
   GETTERS_SETTERS = [:blacklist, :client_acl, :control_acl, :debug, :log, :tracking, :timeout, :web_stats]
   GETTERS         = [:clients_max, :conn_max, :control, :listen, :status, :recent]
   COMMANDS        = [:exit!, :include!, :write!, :file!]

@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{penctl-ruby}
-  s.version = "0.0.0"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jannis Hermanns"]
@@ -16,10 +16,14 @@ Gem::Specification.new do |s|
     "README.rdoc"
   ]
   s.files = [
-    "README.rdoc",
+    ".gitignore",
+     "MIT-LICENSE",
+     "README.rdoc",
+     "Rakefile",
      "VERSION",
      "lib/pen_balancer.rb",
      "lib/penctl.rb",
+     "penctl-ruby.gemspec",
      "rails/init.rb",
      "spec/lib/pen_balancer_spec.rb",
      "spec/lib/penctl_spec.rb",

@@ -12,7 +12,7 @@ try to issue your command up to five times. Important commands like add_server()
 remove_server() make very sure pen has received them correctly and return true or false
 accordingly.
 
-keywords: balancer, pen, penctl
+keywords: balancer, pen, penctl, rails, gem
 
 == Documentation
 

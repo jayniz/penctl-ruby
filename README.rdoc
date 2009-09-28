@@ -1,0 +1,122 @@
+penctl-ruby
+License: MIT
+Version: 0.1
+
+== Description
+
+penctl-ruby is a ruby implementation of penctl, a tool to control pen load
+balancers (a load balancer for "simple" tcp based protocols such as http or smtp):
+
+http://siag.nu/pen/
+
+With penctl-ruby you can add and remove servers to a pen pool and to change settings
+without the need to restart the pen balancer.
+
+keywords: balancer, pen, penctl
+
+== Installation
+
+Installing penctl-ruby is quite simple:
+
+    sudo gem install jayniz-penctl-ruby -s http://gems.github.com
+
+If you want it as plugin, just do:
+
+    script/plugin install git://github.com/jayniz/penctl-ruby.git
+
+== Basic Usage
+
+Let's say you started a pen balancer on some machine with some command
+like `pen -C 192.168.0.1:12000 192.168.0.1:12001`. You can then create a
+PenBalancer object to talk to a pen balancer running on a remote machine:
+
+    >> pen = PenBalancer.new '192.168.0.1:12000'
+    => #<PenBalancer:0x11eb74c @pen="192.168.0.1:12000">
+    >>
+
+If you want to know which servers this pen is balancing requests to, you
+can issue the servers command:
+
+    >> pen.servers
+    => [{:conn=>0, :port=>12501, :hard=>0, :addr=>"127.0.0.1", :sx=>89116821, :slot=>0, :rx=>2891017284, :max=>0},
+        {:conn=>0, :port=>12101, :hard=>0, :addr=>"127.0.0.1", :sx=>3178050, :slot=>1, :rx=>46267355, :max=>0}, 
+        {:conn=>0, :port=>0, :hard=>0, :addr=>"0.0.0.0", :sx=>0, :slot=>2, :rx=>0, :max=>0}, 
+        {:conn=>0, :port=>0, :hard=>0, :addr=>"0.0.0.0", :sx=>0, :slot=>3, :rx=>0, :max=>0}]
+    
+As you can see, there are still two unused slot left. Let's fill them up!
+
+== Adding servers to the pool (or removing them)
+
+Let's add another server to the pool and check if it's there:
+
+    >> pen.add_server '127.0.0.1', 12301
+    => true
+    >> pen.servers
+    => [{:conn=>0, :port=>12501, :hard=>0, :addr=>"127.0.0.1", :sx=>89116821, :slot=>0, :rx=>2891017284, :max=>0}, 
+        {:conn=>0, :port=>12101, :hard=>0, :addr=>"127.0.0.1", :sx=>3178050, :slot=>1, :rx=>46267355, :max=>0}, 
+        {:conn=>0, :port=>12301, :hard=>0, :addr=>"127.0.0.1", :sx=>0, :slot=>2, :rx=>0, :max=>0}, 
+        {:conn=>0, :port=>0, :hard=>0, :addr=>"0.0.0.0", :sx=>0, :slot=>3, :rx=>0, :max=>0}]
+
+Actually you don't have to check if the new server is really there. After attempting to add the server
+to the pool, it retrieves the server list and makes sure the new server is really there and returns true.
+If you try to add a server to the pool that exists already, penctl-ruby will complain. Let's try
+to add the same server again
+
+    >> p.add_server '127.0.0.1', 12301
+    ArgumentError: Server is in the pool already
+      from ./lib/pen_balancer.rb:41:in `add_server'
+      from (irb):15
+
+To remove a server from the pool, you just call:
+
+    >> pen.remove_server '127.0.0.1', 12301
+    => true
+
+== Changing and reading runtime configuration
+
+There are a couple of readonly and also writeable runtime variables to pen. Most of them are also documented
+in `man penctl` (or online at http://linux.die.net/man/1/penctl). You can get/set numerical configuration 
+parameters of a remote pen balancer quite easily. 
+
+    >> pen.client_acl=3
+    => 3
+
+Fetching it goes like this:
+
+    >> pen.client_acl
+    => 3
+
+Accordingly, you can set booleans (please note that you cannot get the current value):
+    >> pen.stubborn=false
+    => false
+
+There are also values you can only read, but not write:
+
+    >> pen.conn_max
+    => 256
+
+Last but not least, you can issue some commands (telling the pen balancer to exit, if you started it
+with the -X flag, for example):
+
+    >> pen_without_x_flag.exit!
+    => ["Exit is not enabled; restart with -X flag"]
+    >> pen_with_x_flag.exit!
+    => []
+
+== Managing access control lists (ACLs)
+
+You can define 10 policies to be used for access control. They are organized in slots from
+0 to 9. To set the ACL in slot 2, you could issue:
+
+    >> pen.set_acl_entry(2, :policy => 'permit', :source_ip => '192.168.0.1', :netmask => '255.255.255.0')
+
+Now we could configure pen to use this policy for client connections:
+
+    >> p.client_acl=2
+    => 2
+
+
+== Bugs and Feedback
+
+If you discover any bugs or want to drop a line, feel free to email me: On gmail.com
+my name is jannis.

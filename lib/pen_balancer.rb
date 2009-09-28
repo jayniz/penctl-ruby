@@ -18,7 +18,7 @@ class PenBalancer
   #
   def initialize( address )
     @pen = address
-    raise "Can't find pen balancer at #{address}" unless Penctl.execute( @pen, "control")[0] == address
+    raise "Can't find pen balancer at #{address}" unless Penctl.execute( @pen, "control")[0].match /#{address.split(':')[1]}/
   end
 
   #

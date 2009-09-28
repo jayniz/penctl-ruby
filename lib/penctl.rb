@@ -1,3 +1,5 @@
+require 'socket'
+
 class Penctl
   
   #
@@ -8,13 +10,19 @@ class Penctl
   def self.execute( server, cmd, tries_left = 5 )
     raise StandardError.new("Error talking to pen, giving up.") unless tries_left > 0
     shell_cmd = "penctl #{server} #{cmd}"
-#    puts "Executing #{shell_cmd}..."
-    result = `#{shell_cmd} 2>&1`.split("\n")    # Redirecting stderr to stdout because of the next line
-#    puts "... result is #{result.inspect}"
-    if $?.to_i!=0 or result[0]=='error_reading' or (cmd=="servers" and result.empty?)
-      sleep 0.3
-      return Penctl.execute( server, cmd, tries_left.pred) 
+    host, port = server.split ':'
+    result = []
+    begin
+      socket = TCPSocket.open( host, port.to_i )
+      socket.puts cmd
+      while line = socket.gets
+        result << line.chomp
+      end
+    rescue Errno::ECONNRESET
+      sleep 0.5
+      return Penctl.execute( server, cmd, tries_left.pred)
     end
+    socket.close
     result
   end
 

@@ -4,7 +4,12 @@ require 'lib/penctl'
 describe Penctl do
   
   it ":execute should call the penctl binary and contact the right pen" do
-    Penctl.should_receive(:'`').with("penctl 127.0.0.1:12000 foo 2>&1").and_return "something\n"
+    socket = mock("socket")
+    socket.should_receive(:puts).with "foo"
+    socket.should_receive(:gets).and_return "something"
+    socket.should_receive(:gets).and_return false
+    socket.should_receive(:close)
+    TCPSocket.should_receive(:open).with("127.0.0.1", 12000).and_return socket
     Penctl.execute( "127.0.0.1:12000", "foo").should == ["something"]
   end
   

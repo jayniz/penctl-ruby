@@ -4,7 +4,7 @@ penctl-ruby is a ruby implementation of penctl, a tool to control pen load
 balancers (a load balancer for "simple" tcp based protocols such as http or smtp): http://siag.nu/pen/
 
 With penctl-ruby you can add and remove servers to a pen server list and to change settings
-without the need to restart the pen balancer.
+without the need to restart the pen balancer. Without the need for a penctl binary.
 
 While pen's regular balancing works fine, issuing commands through the control port 
 can be a bit flakey at times. That's why penctl-ruby has retries built in - it will

@@ -13,7 +13,7 @@ class Penctl
     host, port = server.split ':'
     begin
       send_command( host, port, cmd )
-    rescue Errno::ECONNRESET
+    rescue Errno::ECONNRESET, Errno::EPIPE
       sleep 0.5
       return Penctl.execute( server, cmd, tries_left.pred)
     end

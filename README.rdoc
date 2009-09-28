@@ -127,7 +127,6 @@ To remove a policy from the ACL, you would do (effectively allowing all connecti
 
 == API
 
-<<<<<<< HEAD
 The most important functions are adding/removing and blacklisting/whitelisting servers along with
 ACL management (see above). The rest of the API is inspired by penctl's manpage:
 

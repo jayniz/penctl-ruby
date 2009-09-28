@@ -51,17 +51,3 @@ describe Penctl do
     Penctl.get_set_attribute('127.0.0.1:12000', 'foo')
   end
 end
-
-
-
-__END__
-
-#
-#  Takes an attribute name along with a value and returns the value.
-#
-def self.get_set_attribute(pen, attribute, value)
-  value ||= 0
-  cmd   = attribute.to_s.chomp '='
-  value = attribute.to_s['='] ? " #{value}" : ''
-  return Penctl.execute(pen, "#{cmd}#{value}".chomp)[0].to_i # All attributes you can read from penctl are integers
-end

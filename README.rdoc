@@ -1,16 +1,16 @@
-penctl-ruby
-License: MIT
-Version: 0.1
-
 == Description
 
 penctl-ruby is a ruby implementation of penctl, a tool to control pen load
-balancers (a load balancer for "simple" tcp based protocols such as http or smtp):
-
-http://siag.nu/pen/
+balancers (a load balancer for "simple" tcp based protocols such as http or smtp): http://siag.nu/pen/
 
 With penctl-ruby you can add and remove servers to a pen pool and to change settings
 without the need to restart the pen balancer.
+
+While pen's regular balancing works fine, issuing commands through the control port 
+can be a bit flakey at times. That's why penctl-ruby has retries built in - it will
+try to issue your command up to five times. Important commands like add_server() and
+remove_server() make very sure pen has received them correctly and return true or false
+accordingly.
 
 keywords: balancer, pen, penctl
 
@@ -32,7 +32,6 @@ PenBalancer object to talk to a pen balancer running on a remote machine:
 
     >> pen = PenBalancer.new '192.168.0.1:12000'
     => #<PenBalancer:0x11eb74c @pen="192.168.0.1:12000">
-    >>
 
 If you want to know which servers this pen is balancing requests to, you
 can issue the servers command:
@@ -43,7 +42,7 @@ can issue the servers command:
         {:conn=>0, :port=>0, :hard=>0, :addr=>"0.0.0.0", :sx=>0, :slot=>2, :rx=>0, :max=>0}, 
         {:conn=>0, :port=>0, :hard=>0, :addr=>"0.0.0.0", :sx=>0, :slot=>3, :rx=>0, :max=>0}]
     
-As you can see, there are still two unused slot left. Let's fill them up!
+As you can see, there are still two unused slots left. Let's make use of them!
 
 == Adding servers to the pool (or removing them)
 
@@ -114,9 +113,81 @@ Now we could configure pen to use this policy for client connections:
 
     >> p.client_acl=2
     => 2
+    
+And to configure pen to use this policy for control port connections (don't lock yourself out :):
 
+    >> p.control_acl=2
+    => 2
+
+To remove a policy from the ACL, you would do (effectively allowing all connections):
+
+    >> p.remove_acl_entry 0
+    => []
+
+
+== API
+
+The most important functions are adding/removing and blacklisting/whitelisting servers along with
+ACL management (see above). The rest of the API is inspired by penctl's manpage:
+
+=== Boolean (you can only set, but not get, these)
+
+    pen.ascii=true            # Communication dumps in ascii format (cf option -a).
+    pen.ascii=false           # Communication dumps in hex format.
+    pen.block=true            # Do not make sockets nonblocking.
+    pen.block=false           # Make sockets nonblocking.
+    pen.delayed_forward=true  # Always wait for the next round of the main loop before 
+                              # forwarding data. Normally pen tries to do that immediately.
+    pen.delayed_forward=false # Try to forward data immediately, to avoid the overhead of
+                              # copying it to a temporary buffer and waiting for the next 
+                              # main loop round.
+    pen.hash=true             # Use a hash on the client IP address for initial server selection.
+    pen.hash=false            # Do not use a hash.
+    pen.http=true             # Add X-Forwarded-For headers to http requests.
+    pen.http=false            # Do not add X-Forwarded-For headers.
+    pen.roundrobin=true       # Use round-robin server selection without client tracking
+    pen.roundrobin=false      # Try to route the same client to the same server over time
+    pen.stubborn=true         # If the initial server selection is unavailable, close the 
+                              # client connection without trying another
+    pen.stubborn=false        # If one server does not work, use another
+    pen.weight=true           # Use weight for server selection.
+    pen.weight=false          # Do not use weight for server selection.
+
+=== Numeric (you can get and set these)
+
+    pen.blacklist=60   # Set blacklsit time to 60 seconds
+    pen.client_acl=5   # Check connecting clients against access list N (default 0).
+    pen.control_acl=3  # Check accesses to the control port against access list N (default 0).
+    pen.debug=3        # Set debug level to 3
+    pen.timeout=50     # Return current connect timeout in seconds.
+    pen.tracking=5     # Set tracking time, i.e. how long clients will be remembered. The 
+                       # default 0 will never expire clients based on time
+
+=== Readonly attributes
+    pen.clients_max  # Return max number of clients
+    pen.conn_max     # Return max number of simultaneous connections
+    pen.control      # Return (address and) port where pen listens for control connections
+    pen.listen       # Return (address and) port pen listens to for incoming client connections
+    pen.status       # Print status information in html format
+    pen.recent(5)    # Shows which clients have connected in the last N seconds (default 300)
+
+=== Commands
+    pen.exit!               # Exit. Only available if pen was started with the -X option
+    pen.include!(filename)  # Read commands from filename
+    pen.write!(filename)    # Write the current configuration into a file which can be used to
+                            # start pen. If FILE is omitted, the configuration is written into
+                            # pen's original configuration file
+
+== TODO
+
+The :log and :web_stat methods are not yet implemented
 
 == Bugs and Feedback
 
 If you discover any bugs or want to drop a line, feel free to email me: On gmail.com
 my name is jannis.
+
+penctl-ruby
+License: MIT
+Version: 0.1
+

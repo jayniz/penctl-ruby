@@ -3,11 +3,12 @@ require 'lib/penctl'
 class PenBalancer
   
   # TODO: :log       has log, log=false and log=file
+  #       :web_stats
   
   BOOLEAN_ATTRIBS = [:ascii=, :block=, :control=, :delayed_forward=, :hash=, :http=, :roundrobin=, :stubborn=, :weight=]
-  GETTERS_SETTERS = [:blacklist, :client_acl, :control_acl, :debug, :log, :tracking, :timeout, :web_stats]
+  GETTERS_SETTERS = [:blacklist, :client_acl, :control_acl, :debug, :tracking, :timeout]
   GETTERS         = [:clients_max, :conn_max, :control, :listen, :status, :recent]
-  COMMANDS        = [:exit!, :include!, :write!, :file!]
+  COMMANDS        = [:exit!, :include!, :write!]
 
   #
   #  Creates a new PenBalancer instance: If you have launched a local pen

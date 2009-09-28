@@ -12,8 +12,7 @@ describe PenBalancer do
     end
     
     it ":servers should return an array of hashes with the servers pen currently knows" do
-      servers_reply = ["0 addr 127.0.0.1 port 12101 conn 0 max 0 hard 0 sx 1054463671 rx 2586728338",
-                       "1 addr 127.0.0.1 port 12501 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671"]
+      servers_reply = ["0 addr 127.0.0.1 port 12101 conn 0 max 0 hard 0 sx 1054463671 rx 2586728338", "1 addr 127.0.0.1 port 12501 conn 1 max 0 hard 0 sx 1103014051 rx 2688785671"]
       Penctl.should_receive(:execute).with("127.0.0.1:12000", "servers", 5).and_return servers_reply
 
       result = @pen.servers
@@ -108,6 +107,16 @@ describe PenBalancer do
         }.should raise_error(ArgumentError)
       end
       
+      it "should blacklist a server" do
+        Penctl.should_receive(:update_server).with('127.0.0.1:12000', 0, :blacklist => 999)
+        @pen.blacklist_server('127.0.0.1', 100, 999)
+      end
+
+      it "should whitelist a server" do
+        Penctl.should_receive(:update_server).with('127.0.0.1:12000', 0, :blacklist => 0)
+        @pen.whitelist_server('127.0.0.1', 100)
+      end
+
     end
   
     

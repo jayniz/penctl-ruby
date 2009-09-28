@@ -53,7 +53,25 @@ class PenBalancer
     Penctl.update_server( @pen, server[:slot], :address => '0.0.0.0', :port => 0 )
     !server_in_pool? host, port
   end
-  
+
+  #
+  #  Blacklists a server for the given amount of seconds or throws an
+  #  exception when the server cannot be found in the pool
+  #
+  def blacklist_server( host, port, blacklist_seconds = 3600)
+    server = get_server( host, port )
+    Penctl.update_server( @pen, server[:slot], :blacklist => blacklist_seconds)
+  end
+
+
+  #
+  #  A shortcut for blacklisting a server for 0 seconds.
+  #
+  def whitelist_server( host, port)
+    server = get_server( host, port )
+    Penctl.update_server( @pen, server[:slot], :blacklist => 0)
+  end
+
   #
   #  Updates an entry of the access control list. Params is a hash with
   #  mandatory :policy => permit/deny and :source_ip. You can optionally

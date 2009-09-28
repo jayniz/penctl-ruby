@@ -3,7 +3,7 @@ require 'socket'
 class Penctl
   
   #
-  #  Calls the penctl binary and issues a command. If you set tries_left to something
+  #  Connects to pen's control port and issues a command. If you set tries_left to something
   #  larger than 0, it will try to contact the pen server again, when it could not
   #  be reached (raising an exception when it gives up).
   #

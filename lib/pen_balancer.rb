@@ -1,4 +1,4 @@
-require 'lib/penctl'
+require 'penctl'
 
 class PenBalancer
   

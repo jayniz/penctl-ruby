@@ -22,7 +22,7 @@ RDocs at http://rdoc.info/projects/jayniz/penctl-ruby
 
 Installing penctl-ruby is quite simple:
 
-    sudo gem install penctl-ruby -s http://gemcutter.org
+    sudo gem install penctl-ruby -v=0.1.2 -s http://gemcutter.org
 
 If you want it as plugin, just do:
 
@@ -34,6 +34,10 @@ Let's say you started a pen balancer on some machine with some command
 like `pen -C 192.168.0.1:12000 192.168.0.1:12001`. You can then create a
 PenBalancer object to talk to a pen balancer running on a remote machine:
 
+    $ c
+    Loading development environment (Rails x.y.z)
+    >> require 'rubygems'
+    >> require 'pen_balancer'
     >> pen = PenBalancer.new '192.168.0.1:12000'
     => #<PenBalancer:0x11eb74c @pen="192.168.0.1:12000">
 
@@ -193,5 +197,5 @@ my name is jannis.
 
 penctl-ruby
 License: MIT
-Version: 0.1
+Version: 0.1.2
 

@@ -30,14 +30,24 @@ If you want it as plugin, just do:
 
 == Basic Usage
 
-Let's say you started a pen balancer on some machine with some command
-like `pen -C 192.168.0.1:12000 192.168.0.1:12001`. You can then create a
-PenBalancer object to talk to a pen balancer running on a remote machine:
+First you have to load the gem. In a Rails project, just do:
 
     $ c
     Loading development environment (Rails x.y.z)
     >> require 'rubygems'
     >> require 'pen_balancer'
+
+If you're not in a rails project, you have to add some more path info 
+(this path will not work for you, if you have rubygems.rb somewhere else):
+
+    $ irb
+    >> require '/opt/local/lib/ruby/vendor_ruby/1.8/rubygems.rb'
+    >> require 'pen_balancer'
+
+Let's say you started a pen balancer on some server with some command
+like `pen -C 192.168.0.1:12000 192.168.0.1:12001`. You can then create a
+PenBalancer object to talk to a pen balancer running on a remote machine.
+
     >> pen = PenBalancer.new '192.168.0.1:12000'
     => #<PenBalancer:0x11eb74c @pen="192.168.0.1:12000">
 

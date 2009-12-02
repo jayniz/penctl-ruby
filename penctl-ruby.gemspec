@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{penctl-ruby}
-  s.version = "0.1.2"
+  s.version = "0.1.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jannis Hermanns"]
-  s.date = %q{2009-09-29}
+  s.date = %q{2009-12-02}
   s.description = %q{With penctl-ruby you can add and remove servers to a pen server list and to change settings without the need to restart the pen balancer.}
   s.email = %q{jannis@gmail.com}
   s.extra_rdoc_files = [
@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/jayniz/penctl-ruby}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.4}
+  s.rubygems_version = %q{1.3.5}
   s.summary = %q{Ruby implementation of penctl}
   s.test_files = [
     "spec/lib/pen_balancer_spec.rb",

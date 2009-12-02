@@ -22,7 +22,7 @@ RDocs at http://rdoc.info/projects/jayniz/penctl-ruby
 
 Installing penctl-ruby is quite simple:
 
-    sudo gem install penctl-ruby -v=0.1.2 -s http://gemcutter.org
+    sudo gem install penctl-ruby -s http://gemcutter.org
 
 If you want it as plugin, just do:
 

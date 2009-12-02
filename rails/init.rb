@@ -1,2 +1,2 @@
-require 'lib/pen_balancer'
-require 'lib/penctl'
+require 'pen_balancer'
+require 'penctl'
